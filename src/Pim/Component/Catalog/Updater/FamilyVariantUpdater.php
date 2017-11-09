@@ -112,11 +112,13 @@ class FamilyVariantUpdater implements ObjectUpdaterInterface
                 $familyVariant->setFamily($family);
                 break;
             case 'variant_attribute_sets':
+                $isNew = null === $familyVariant->getId();
+
                 if (!is_array($value)) {
                     throw InvalidPropertyTypeException::arrayOfObjectsExpected($field, static::class, $value);
                 }
 
-                if (null !== $familyVariant->getId() &&
+                if (!$isNew &&
                     $familyVariant->getNumberOfLevel() < $this->getNumberOfLevel($value)
                 ) {
                     throw ImmutablePropertyException::immutableProperty(
@@ -169,14 +171,14 @@ class FamilyVariantUpdater implements ObjectUpdaterInterface
                         $familyVariant->addVariantAttributeSet($attributeSet);
                     }
 
-                    if (isset($attributeSetData['axes'])) {
+                    if (isset($attributeSetData['axes']) && $isNew) {
                         $attributeSet->setAxes(
                             $this->getAttributes($attributeSetData['axes'], $attributeSetData['level'])
                         );
                     }
 
                     if (isset($attributeSetData['attributes'])) {
-                        if (null !== $familyVariant->getId()) {
+                        if (!$isNew) {
                             $this->removeAttributeFromPreviousLevel($familyVariant, $attributeSetData);
                         }
 
